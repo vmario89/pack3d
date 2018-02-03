@@ -7,10 +7,11 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/briangilbert/pack3d/binpack"
 	"github.com/fogleman/fauxgl"
-	"github.com/fogleman/pack3d/binpack"
 )
 
 // Config file format definition
@@ -22,6 +23,7 @@ type Config struct {
 }
 
 //Rotations definition
+var ZRotations []fauxgl.Matrix
 var Rotations []fauxgl.Matrix
 
 // LoadConfiguration file
@@ -48,6 +50,20 @@ func LoadConfiguration() Config {
 }
 
 func init() {
+
+	for i := 0; i < 2; i++ {
+		for j := 0; j < 1; j++ {
+			m := fauxgl.Rotate(fauxgl.Vector{0, 0, 1}, float64(i)*math.Pi/2)
+			switch j {
+			case 1:
+				m = m.Rotate(fauxgl.Vector{1, 0, 0}, math.Pi/2)
+			case 2:
+				m = m.Rotate(fauxgl.Vector{0, 1, 0}, math.Pi/2)
+			}
+			ZRotations = append(ZRotations, m)
+		}
+	}
+
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 3; j++ {
 			m := fauxgl.Rotate(fauxgl.Vector{0, 0, 1}, float64(i)*math.Pi/2)
@@ -105,8 +121,13 @@ func main() {
 		i := len(meshes)
 		meshes = append(meshes, mesh)
 		box := mesh.BoundingBox()
+
 		for j, m := range Rotations {
-			id := i*len(Rotations) + j
+			if strings.Contains(arg, "onlyz") {
+				id := i*len(ZRotations) + j
+			} else {
+				id := i*len(Rotations) + j
+			}
 			s := box.Transform(m).Size()
 			sx := int(math.Ceil((s.X + P*2) * S))
 			sy := int(math.Ceil((s.Y + P*2) * S))
