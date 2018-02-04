@@ -7,10 +7,11 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/briangilbert/pack3d/binpack"
 	"github.com/fogleman/fauxgl"
-	"github.com/fogleman/pack3d/binpack"
 )
 
 // Config file format definition
@@ -20,6 +21,9 @@ type Config struct {
 	SizeZ int     `json:"SizeZ"`
 	P     float64 `json:"HalfPartSpacing"`
 }
+
+//ZRotations definition
+var ZRotations []fauxgl.Matrix
 
 //Rotations definition
 var Rotations []fauxgl.Matrix
@@ -48,6 +52,20 @@ func LoadConfiguration() Config {
 }
 
 func init() {
+
+	for i := 0; i < 2; i++ {
+		for j := 0; j < 1; j++ {
+			m := fauxgl.Rotate(fauxgl.Vector{0, 0, 1}, float64(i)*math.Pi/2)
+			switch j {
+			case 1:
+				m = m.Rotate(fauxgl.Vector{1, 0, 0}, math.Pi/2)
+			case 2:
+				m = m.Rotate(fauxgl.Vector{0, 1, 0}, math.Pi/2)
+			}
+			ZRotations = append(ZRotations, m)
+		}
+	}
+
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 3; j++ {
 			m := fauxgl.Rotate(fauxgl.Vector{0, 0, 1}, float64(i)*math.Pi/2)
@@ -73,12 +91,12 @@ func timed(name string) func() {
 }
 
 func main() {
-	config := LoadConfiguration()
+	// config := LoadConfiguration()
 
-	var SizeX = config.SizeX
-	var SizeY = config.SizeY
-	var SizeZ = config.SizeZ
-	var P = config.P
+	var SizeX = 380
+	var SizeY = 284
+	var SizeZ = 50
+	var P = 2.5
 	const S = 100
 
 	var items []binpack.Item
@@ -105,14 +123,27 @@ func main() {
 		i := len(meshes)
 		meshes = append(meshes, mesh)
 		box := mesh.BoundingBox()
-		for j, m := range Rotations {
-			id := i*len(Rotations) + j
-			s := box.Transform(m).Size()
-			sx := int(math.Ceil((s.X + P*2) * S))
-			sy := int(math.Ceil((s.Y + P*2) * S))
-			sz := int(math.Ceil((s.Z + P*2) * S))
-			items = append(items, binpack.Item{id, score, binpack.Vector{sx, sy, sz}})
+
+		if strings.Contains(arg, "onlyz") {
+			for j, m := range ZRotations {
+				id := i*len(ZRotations) + j
+				s := box.Transform(m).Size()
+				sx := int(math.Ceil((s.X + P*2) * S))
+				sy := int(math.Ceil((s.Y + P*2) * S))
+				sz := int(math.Ceil((s.Z + P*2) * S))
+				items = append(items, binpack.Item{id, score, binpack.Vector{sx, sy, sz}})
+			}
+		} else {
+			for j, m := range Rotations {
+				id := i*len(Rotations) + j
+				s := box.Transform(m).Size()
+				sx := int(math.Ceil((s.X + P*2) * S))
+				sy := int(math.Ceil((s.Y + P*2) * S))
+				sz := int(math.Ceil((s.Z + P*2) * S))
+				items = append(items, binpack.Item{id, score, binpack.Vector{sx, sy, sz}})
+			}
 		}
+
 		ok = true
 	}
 
