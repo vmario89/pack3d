@@ -1,3 +1,5 @@
+# fork of BrianGilbert/pack3d which is a fork of fogleman/pack3d.
+
 # pack3d
 
 Tightly pack 3D models.
@@ -29,6 +31,7 @@ pack3d 4 3DBenchy.stl  # tightly pack 4 boats
 pack3d 1 *.stl         # tightly pack various meshes, one of each
 
 # pack as many boats as possible into the printer volume, given a few different arrangements
+# in case there's a conf.json existent you easily can modify XYZ and padding parameters. See conf.json.example file
 binpack 1 3DBenchy.stl 2 3DBenchy-x2.stl 4 3DBenchy-x4.stl
 ```
 
