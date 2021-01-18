@@ -9,8 +9,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"path/filepath"
 
-	"github.com/briangilbert/pack3d/binpack"
+	"../../binpack"
 	"github.com/fogleman/fauxgl"
 )
 
@@ -36,10 +37,12 @@ func LoadConfiguration() Config {
 	}
 
 	var config Config
-	configFile, err := os.Open(cwd + "conf.json")
+	configFile, err := os.Open(filepath.FromSlash(cwd + "/conf.json"))
 	defer configFile.Close()
 	if err != nil {
 		// Use defaults when no config supplied
+		fmt.Println("Could not find 'conf.json'. Using default configuration values")
+		fmt.Println(err)
 		config.SizeX = 165
 		config.SizeY = 165
 		config.SizeZ = 320
@@ -48,6 +51,11 @@ func LoadConfiguration() Config {
 	}
 	jsonParser := json.NewDecoder(configFile)
 	err = jsonParser.Decode(&config)
+	if err != nil {
+		fmt.Println("Error parsing conf.json")
+	fmt.Println(err)
+	}
+	fmt.Println("Successfully parsed conf.json")
 	return config
 }
 
@@ -91,13 +99,15 @@ func timed(name string) func() {
 }
 
 func main() {
-	// config := LoadConfiguration()
+	config := LoadConfiguration()
 
-	var SizeX = 380
-	var SizeY = 284
-	var SizeZ = 50
-	var P = 2.5
+	var SizeX = config.SizeX
+	var SizeY = config.SizeY
+	var SizeZ = config.SizeZ
+	var P = config.P
 	const S = 100
+
+	fmt.Printf("X=%v, Y=%v, Z=%v, HalfPartSpacing=%v\n",SizeX, SizeY, SizeZ, P)
 
 	var items []binpack.Item
 	var meshes []*fauxgl.Mesh
